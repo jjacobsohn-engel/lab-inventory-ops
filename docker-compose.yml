@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-frontend:latest
+    image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-frontend:main
     labels:
       - traefik.http.routers.site.rule=Host(`$DOMAIN`)
       - traefik.http.services.site.loadbalancer.server.port=8080
@@ -8,10 +8,10 @@ services:
       - traefik
       - api
   api:
-    image: ghcr.io/jjacobsohn-eppendorf/sample-company-backend:main
+    image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-backend:main
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.api.loadbalancer.server.port=8080"
+      - "traefik.http.services.api.loadbalancer.server.port=8081"
       - "traefik.http.routers.api.rule=Host(`$DOMAIN`) && PathPrefix(`/api`)"
       - traefik.http.middlewares.api-strip.stripprefix.prefixes=/api
       - traefik.http.routers.api.middlewares=api-strip
