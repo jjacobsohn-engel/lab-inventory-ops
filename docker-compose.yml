@@ -1,0 +1,29 @@
+services:
+  app:
+    image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-frontend:latest
+    labels:
+      - traefik.http.routers.site.rule=Host(`$DOMAIN`)
+      - traefik.http.services.site.loadbalancer.server.port=8080
+    depends_on:
+      - traefik
+      - api
+  api:
+    image: ghcr.io/jjacobsohn-eppendorf/sample-company-backend:main
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+      - "traefik.http.routers.api.rule=Host(`$DOMAIN`) && PathPrefix(`/api`)"
+      - traefik.http.middlewares.api-strip.stripprefix.prefixes=/api
+      - traefik.http.routers.api.middlewares=api-strip
+    depends_on:
+      - traefik
+  traefik:
+    image: traefik:v2.9
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=false
