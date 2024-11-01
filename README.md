@@ -26,8 +26,6 @@ Stop the application
     $ docker compose down
 
 
-
-
 TODO:
 
 - set up letsencrypt

@@ -2,28 +2,50 @@ services:
   app:
     image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-frontend:main
     labels:
-      - traefik.http.routers.site.rule=Host(`$DOMAIN`)
+      - traefik.enable=true
       - traefik.http.services.site.loadbalancer.server.port=8080
+      - traefik.http.routers.app.rule=Host(`$DOMAIN`)
+      - traefik.http.routers.app.entrypoints=websecure
+      - traefik.http.routers.app.tls.certresolver=letsencrypt
     depends_on:
       - traefik
       - api
   api:
     image: ghcr.io/jjacobsohn-eppendorf/lab-inventory-backend:main
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.api.loadbalancer.server.port=8081"
-      - "traefik.http.routers.api.rule=Host(`$DOMAIN`) && PathPrefix(`/api`)"
+      - traefik.enable=true
+      - traefik.http.services.api.loadbalancer.server.port=8081
+      - traefik.http.routers.api.entrypoints=websecure
+      - traefik.http.routers.api.rule=Host(`$DOMAIN`) && PathPrefix(`/api`)
       - traefik.http.middlewares.api-strip.stripprefix.prefixes=/api
       - traefik.http.routers.api.middlewares=api-strip
     depends_on:
       - traefik
   traefik:
-    image: traefik:v2.9
-    command: --api.insecure=true --providers.docker
+    image: traefik:v3.2
+    container_name: traefik
+    command:
+      - --log.level=DEBUG
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=$EMAIL
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      # - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
-      - traefik.enable=false
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`$DOMAIN`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.tls.certresolver=myresolver
