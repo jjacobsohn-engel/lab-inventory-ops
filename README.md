@@ -1,6 +1,9 @@
 Lab Inventory OPS
 ==================
 
+> [!WARNING]
+> This project has been replaced by [a newer version](https://github.com/jjacobsohn-eppendorf/lit-lab-inventory-tracker), but is being kept for reference.
+
 A simple docker compose scheme to deploy the `Lab Inventory` project. 
 
 Env vars
